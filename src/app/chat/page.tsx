@@ -815,6 +815,9 @@ export default function GitHubCopilotInterface() {
   const [activePanel, setActivePanel] = useState<"conversations" | "repository" | "files" | "assistants" | "agent">("conversations")
   // Selected specialized agent (left sidebar)
   const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null)
+  // Agent options state
+  const [selectedAgentMode, setSelectedAgentMode] = useState<string | null>(null)
+  const [selectedAgentLanguage, setSelectedAgentLanguage] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedRepository, setSelectedRepository] = useState<Repository | null>(null)
   const [isRecording, setIsRecording] = useState(false)
@@ -1078,9 +1081,9 @@ export default function GitHubCopilotInterface() {
                         console.log('[Stream] Unrecognized JSON chunk shape:', parsed)
                       }
                     } catch {
-                      // If not JSON, treat as plain text and DO NOT trim leading spaces
+                      // If not JSON, treat as plain text
                       console.log('[Stream] Non-JSON data:', data.substring(0, 50))
-                      assistantMessage += rawData
+                      assistantMessage += data
                     }
                     
                     // Update message in real-time
@@ -1759,7 +1762,7 @@ export default function GitHubCopilotInterface() {
         preview: chat.preview || "",
         updatedAt: chat.updatedAt || new Date().toISOString(),
         type: "general" as const,
-        repository: "AI Assistant",
+        repository: "Filadelfiya",
         files: []
       }))
       
@@ -1950,7 +1953,7 @@ export default function GitHubCopilotInterface() {
             preview: "",
             updatedAt: new Date().toISOString(),
             type: "general" as const,
-            repository: "AI Assistant",
+            repository: "Filadelfiya",
             files: []
           },
           ...prev
@@ -2014,6 +2017,53 @@ export default function GitHubCopilotInterface() {
     }
   }, [chatAPI, clearSelectedImage])
 
+  // Paste handler for Ctrl+V image pasting
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      
+      // Check if the item is an image
+      if (item.type.startsWith('image/')) {
+        e.preventDefault() // Prevent default paste behavior
+        
+        const file = item.getAsFile()
+        if (!file) continue
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          alert('Image size must be less than 10MB')
+          return
+        }
+
+        setSelectedImage(file)
+        
+        // Create preview
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          setImagePreview(e.target?.result as string)
+        }
+        reader.readAsDataURL(file)
+
+        // Upload the image to get imageUrl
+        try {
+          console.log('[Paste] Uploading pasted image...')
+          const imageUrl = await chatAPI.uploadImage(file)
+          setUploadedImageUrl(imageUrl)
+          console.log('[Paste] Image uploaded successfully, URL:', imageUrl)
+        } catch (error) {
+          console.error('[Paste] Failed to upload image:', error)
+          alert('Failed to upload image. Please try again.')
+          clearSelectedImage()
+        }
+        
+        break // Only handle the first image
+      }
+    }
+  }, [chatAPI, clearSelectedImage])
+
   // Drag and drop handlers
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -2061,7 +2111,7 @@ export default function GitHubCopilotInterface() {
           preview: '',
           updatedAt: new Date().toISOString(),
           type: 'general' as const,
-          repository: 'AI Assistant',
+          repository: 'Filadelfiya',
           files: []
         },
         ...prev
@@ -2069,26 +2119,63 @@ export default function GitHubCopilotInterface() {
     }
 
     if (!token) throw new Error('Missing auth token')
-    const form = new FormData()
-    form.append('file', file)
-    form.append('question', question || '')
-
     setIsStreaming(true)
     try {
-      const res = await fetch(`${API_BASE}/api/agent/ask-file/${currentChatId}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`
-          // Do not set Content-Type; browser sets multipart boundary
-        },
-        body: form
-      })
+      let res, answerText = ''
+      // PDF Summarizer: JSON body
+      if (selectedAgent && selectedAgent.key === 'pdf-summarizer') {
+        // Assume file is already uploaded and we have a fileName (in real app, upload first)
+        // Here, just use file.name for demo
+        const body = {
+          fileName: file.name,
+          summaryMode: selectedAgentMode || 'TL;DR'
+        }
+        res = await fetch(`${API_BASE}${selectedAgent.endpoint}/${currentChatId}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+      } else {
+        // Default: multipart/form-data
+        const form = new FormData()
+        form.append('file', file)
+        if (question) form.append('question', question)
+        if (selectedAgent && selectedAgent.options) {
+          if (selectedAgent.options.modes && selectedAgentMode) {
+            form.append('mode', selectedAgentMode)
+          }
+          if (selectedAgent.options.languages && selectedAgentLanguage) {
+            form.append('language', selectedAgentLanguage)
+          }
+        }
+        // Special cases for other agents
+        if (selectedAgent) {
+          if (selectedAgent.key === 'document-translator') {
+            form.append('targetLanguage', selectedAgentLanguage || 'en')
+          }
+          if (selectedAgent.key === 'generate-presentation') {
+            form.append('topic', question || '')
+          }
+        }
+        const endpoint = selectedAgent ? selectedAgent.endpoint : '/api/agent/ask-file'
+        const url = `${API_BASE}${endpoint}/${currentChatId}`
+        res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`
+            // Do not set Content-Type; browser sets multipart boundary
+          },
+          body: form
+        })
+      }
       if (!res.ok) {
         const txt = await res.text().catch(() => '')
-        throw new Error(`ask-file failed: ${res.status} ${res.statusText} ${txt}`)
+        throw new Error(`agent file failed: ${res.status} ${res.statusText} ${txt}`)
       }
       // Try JSON first, fallback to text
-      let answerText = ''
       const contentType = res.headers.get('content-type') || ''
       if (contentType.includes('application/json')) {
         const data = await res.json()
@@ -2111,7 +2198,7 @@ export default function GitHubCopilotInterface() {
     } finally {
       setIsStreaming(false)
     }
-  }, [activeChatId, createNewChat, setActiveChatId, setSelectedConversationId, setConversations, setMessages, token])
+  }, [activeChatId, createNewChat, setActiveChatId, setSelectedConversationId, setConversations, setMessages, token, selectedAgent, selectedAgentMode, selectedAgentLanguage])
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault()
@@ -2640,10 +2727,10 @@ export default function GitHubCopilotInterface() {
                 </div>
                 <div>
                   <h1 className={`font-bold text-lg ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                    AI Assistant
+                    Filadelfiya
                   </h1>
                   <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Smart Coding Partner
+                    Your Document AI Platform
                   </p>
                 </div>
               </div>
@@ -2777,7 +2864,7 @@ export default function GitHubCopilotInterface() {
               )}
               {activePanel === "assistants" && (
                 <div className="p-4 space-y-3">
-                  <div className={`text-xs font-medium uppercase tracking-wide ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>AI Assistant</div>
+                  <div className={`text-xs font-medium uppercase tracking-wide ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Filadelfiya</div>
                   <div className="grid grid-cols-1 gap-2">
                     {AGENT_TYPES.map(agent => {
                       const selected = selectedAgent?.key === agent.key
@@ -2806,18 +2893,31 @@ export default function GitHubCopilotInterface() {
                   {selectedAgent?.options && (
                     <div className={`mt-2 p-3 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                       <div className={`text-xs font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Options</div>
-                      {/* Example for common option shapes */}
+                      {/* Modes */}
                       {'modes' in selectedAgent.options && Array.isArray(selectedAgent.options.modes) && (
                         <div className="flex flex-wrap gap-2 mb-2">
                           {selectedAgent.options.modes.map((m: string) => (
-                            <span key={m} className={`px-2 py-1 rounded text-xs ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-white text-gray-700 border border-gray-200'}`}>{m}</span>
+                            <button
+                              key={m}
+                              onClick={() => setSelectedAgentMode(m)}
+                              className={`px-2 py-1 rounded text-xs border ${selectedAgentMode === m ? (darkMode ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-100 text-blue-700 border-blue-400') : (darkMode ? 'bg-gray-600 text-gray-200 border-gray-500' : 'bg-white text-gray-700 border-gray-200')}`}
+                            >
+                              {m}
+                            </button>
                           ))}
                         </div>
                       )}
+                      {/* Languages */}
                       {'languages' in selectedAgent.options && Array.isArray(selectedAgent.options.languages) && (
                         <div className="flex flex-wrap gap-2 mb-2">
                           {selectedAgent.options.languages.map((l: string) => (
-                            <span key={l} className={`px-2 py-1 rounded text-xs ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-white text-gray-700 border border-gray-200'}`}>{l}</span>
+                            <button
+                              key={l}
+                              onClick={() => setSelectedAgentLanguage(l)}
+                              className={`px-2 py-1 rounded text-xs border ${selectedAgentLanguage === l ? (darkMode ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-100 text-blue-700 border-blue-400') : (darkMode ? 'bg-gray-600 text-gray-200 border-gray-500' : 'bg-white text-gray-700 border-gray-200')}`}
+                            >
+                              {l}
+                            </button>
                           ))}
                         </div>
                       )}
@@ -2991,7 +3091,7 @@ export default function GitHubCopilotInterface() {
                   <p className={`text-base font-normal ${
                     darkMode ? 'text-gray-400' : 'text-gray-500'
                   }`}>
-                    I&apos;m your AI assistant, ready to help with coding, analysis, and creative tasks.
+                    I&apos;m Filadelfiya, ready to help with document analysis, summaries, translation, and more.
                   </p>
                   
                   {/* Authentication Notice */}
@@ -3705,6 +3805,7 @@ export default function GitHubCopilotInterface() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  onPaste={handlePaste}
                   style={{ 
                     minHeight: '48px',
                     maxHeight: '120px'
@@ -3746,6 +3847,13 @@ export default function GitHubCopilotInterface() {
                   onChange={handleGeneralFileSelect}
                   className="hidden"
                 />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
                 
                 {/* Left Actions */}
                 <div className="flex items-center gap-2">
@@ -3778,17 +3886,23 @@ export default function GitHubCopilotInterface() {
                       <span>Upload</span>
                     </button>
                   )}
-                  {/* removed image-only upload button to keep a single upload entry point */}
-                  
+                  {/* Image Upload Button */}
                   <button 
-                    className={`p-1.5 rounded-lg transition-all group ${
-                      darkMode 
-                        ? 'text-gray-300 hover:text-purple-400 hover:bg-gray-600' 
-                        : 'text-gray-600 hover:text-purple-600 hover:bg-white hover:shadow-sm'
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isStreaming || isAgentMode}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all group relative text-xs font-medium border ${
+                      isStreaming || isAgentMode
+                        ? (darkMode
+                            ? 'text-gray-500 bg-gray-700/60 border-gray-600 cursor-not-allowed'
+                            : 'text-gray-400 bg-white border-gray-200 cursor-not-allowed')
+                        : (darkMode
+                            ? 'text-gray-300 bg-gray-700 hover:bg-gray-600 border-gray-600'
+                            : 'text-gray-700 bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300')
                     }`}
-                    title="Capture image"
+                    title="Upload image for vision"
                   >
-                    <Camera size={16} className="transition-transform group-hover:scale-110" />
+                    <Camera size={14} className="transition-transform group-hover:scale-110" />
+                    <span>Image</span>
                   </button>
                   
                   {/* Web Search Toggle - Enhanced */}
