@@ -1,0 +1,22 @@
+# Auto detect text files and normalize line endings to LF in repo
+* text=auto eol=lf
+# Treat these as text explicitly
+*.js text
+*.ts text
+*.tsx text
+*.jsx text
+*.json text
+*.md text
+*.css text
+*.mjs text
+*.cjs text
+# Keep images/binaries as-is
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg text
+*.ico binary
+*.pdf binary
+*.zip binary
+*.node filter=lfs diff=lfs merge=lfs -text

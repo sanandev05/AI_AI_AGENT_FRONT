@@ -1,0 +1,353 @@
+@import "tailwindcss";
+
+/* GitHub Copilot AI Agent Theme - Manus Style */
+:root {
+  /* Core Backgrounds */
+  --background-main: #FAFAFA; /* Light gray main background */
+  --background-secondary: #F5F5F7; /* Slightly darker for cards */
+  --sidebar-bg: #EEEEEF; /* Sidebar background */
+  --panel-bg: #FFFFFF; /* Pure white panels */
+  --panel-border: #E5E5E7; /* Subtle borders */
+  
+  /* Text Hierarchy */
+  --text-primary: #1A1A1A; /* Dark charcoal */
+  --text-secondary: #6B6B6B; /* Medium gray */
+  --text-tertiary: #8E8E93; /* Light gray */
+  --text-muted: #ADADB3; /* Very light gray */
+
+  /* GitHub Brand Colors */
+  --github-blue: #0366D6; /* Primary GitHub blue */
+  --github-blue-hover: #0256CC; /* Darker hover state */
+  --github-green: #28A745; /* Success green */
+  --github-red: #D73A49; /* Error red */
+  --github-orange: #FB8500; /* Warning orange */
+
+  /* Interactive States */
+  --hover-bg: #E5E5E7; /* Subtle hover */
+  --active-bg: #D6D6D8; /* Active state */
+  --focus-ring: #0366D6; /* Focus ring color */
+
+  /* Code Syntax Colors */
+  --code-bg: #F6F8FA;
+  --code-border: #E1E4E8;
+  --syntax-keyword: #D73A49;
+  --syntax-string: #032F62;
+  --syntax-comment: #6A737D;
+  --syntax-function: #6F42C1;
+
+  /* Legacy compatibility */
+  --accent-primary: var(--github-blue);
+  --accent-primary-hover: var(--github-blue-hover);
+  --accent-secondary: var(--github-green);
+  --status-green: var(--github-green);
+  --alert-red: var(--github-red);
+  
+  /* Dark mode option with warm amber tones */
+  --dark-background-main: #2A2520; /* Warm dark brown */
+  --dark-background-secondary: #3A332B; /* Lighter warm brown */
+  --dark-panel-bg: #4A3F35; /* Medium warm brown */
+  --dark-text-primary: #F7F0E8; /* Warm off-white */
+  
+  /* Legacy mappings for compatibility */
+  --accent-gray: var(--text-muted);
+  --accent-hover: rgba(104, 160, 133, 0.1);
+  --gradient-blue-purple-pink: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  --gradient-blue-purple: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  --highlight-blue: var(--accent-primary);
+  --highlight-purple: var(--accent-secondary);
+  --highlight-pink: #D69E2E;
+  --highlight-orange: #ED8936;
+  
+  --background-white-main: var(--background-main);
+  --background-gray-main: var(--background-secondary);
+  --fill-input-chat: var(--panel-bg);
+  --fill-tsp-white-main: rgba(255,255,255,0.8);
+  --text-disable: var(--text-muted);
+  --Button-primary-black: var(--accent-primary);
+  --text-onblack: var(--text-primary);
+  --text-blue: var(--accent-primary);
+  --text-white-tsp: var(--text-primary);
+
+  --card-bg: var(--panel-bg);
+  --cta-gradient: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-hover));
+}
+
+html, body {
+  background: var(--background-main);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Comfort-focused typography */
+.comfort-text {
+  font-size: 16px;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+}
+
+.comfort-text-large {
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+/* Soft shadows for comfort */
+.comfort-shadow {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.comfort-shadow-subtle {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Input focus styles */
+textarea:focus, input:focus {
+  outline: none;
+}
+
+/* Button hover effects */
+button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth animations */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Text truncation utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-clamp: 2;
+}
+
+/* Modern UI additions -------------------------------------------------- */
+:root {
+  --glass-bg: rgba(255,255,255,0.02);
+  --glass-border: rgba(255,255,255,0.04);
+  --muted-bg: rgba(255,255,255,0.02);
+}
+
+/* Subtle radial accent to the page for depth */
+html, body {
+  background-image: radial-gradient(circle at 10% 10%, rgba(59,130,246,0.04), transparent 140px), var(--background-main);
+}
+
+/* Reusable glass surface */
+.glass-panel {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 0.25rem;
+  backdrop-filter: blur(6px);
+}
+
+.glass-button {
+  background: transparent;
+  border-radius: 8px;
+}
+
+/* Accessible focus ring for keyboard users */
+.focus-ring:focus-visible,
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
+  border-color: var(--highlight-blue);
+}
+
+/* Avatar helpers */
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: white;
+}
+
+.avatar-ai { background: linear-gradient(90deg,#3B82F6,#8B5CF6); }
+.avatar-user { background: linear-gradient(90deg,#F97316,#EC4899); }
+
+/* Message bubble styles */
+.message-bubble {
+  max-width: 75%;
+  word-break: break-word;
+  border-radius: 14px;
+  padding: 12px 16px;
+  line-height: 1.45;
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 220ms ease;
+}
+
+.message-assistant {
+  background: linear-gradient(90deg,#06b6d4 0%,#8B5CF6 100%);
+  color: white;
+  box-shadow: 0 6px 18px rgba(59,130,246,0.08);
+}
+
+.message-user {
+  background: linear-gradient(90deg,#FB923C 0%,#F472B6 100%);
+  color: white;
+  box-shadow: 0 6px 18px rgba(249,115,22,0.06);
+}
+
+.message-new { animation: fadeIn 320ms ease both; }
+
+/* Call-to-action helper */
+.btn-cta { background: var(--cta-gradient); color: white; }
+
+/* subtle card elevation */
+.card-elevated { box-shadow: 0 8px 30px rgba(2,6,23,0.6); }
+
+/* Small helper for time and meta */
+.message-meta { font-size: 0.75rem; color: var(--text-tertiary); }
+
+/* Status banner */
+.backend-banner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(139,92,246,0.12), rgba(59,130,246,0.06));
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* subtle hover lift for cards */
+.card-hover { transition: transform 160ms ease, box-shadow 160ms ease; }
+.card-hover:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(2,6,23,0.6); }
+
+/* Small utility: subtle divider for left nav */
+.nav-divider { width: 1px; background: rgba(255,255,255,0.03); }
+
+/* Improve contrast of small text in dark theme */
+.muted-strong { color: var(--text-tertiary); }
+
+/* Make buttons feel tactile */
+button { will-change: transform; }
+
+/* Gradient text */
+.gradient-text {
+  background: var(--gradient-blue-purple-pink);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Backdrop blur support */
+@supports (backdrop-filter: blur(16px)) {
+  .backdrop-blur-xl {
+    backdrop-filter: blur(16px);
+  }
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Enhanced hover states */
+.hover-glow:hover {
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Loading animation for typing indicator */
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-5px); }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--text-primary);
+}
+
+/* Enhanced typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.text-base {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.text-lg {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 3px 15px rgba(59, 130, 246, 0.1);
+}
+
+/* Sidebar collapse helpers requested by the user */
+#sidebar.collapsed { width:72px; min-width:72px; max-width:72px; padding-left:8px; padding-right:8px; }
+#sidebar.collapsed .hide-when-collapsed { display:none; }
+
+/* Ensure main area doesn't cause horizontal scroll */
+main { overflow-x: hidden; }
+
+/* thin dark scrollbar for content area */
+.scroll-thin::-webkit-scrollbar { height:6px; width:6px }
+.scroll-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius:6px }

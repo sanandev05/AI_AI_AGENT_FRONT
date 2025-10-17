@@ -1,0 +1,63 @@
+/* Chat Interface Styles */
+.chat-container {
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+}
+
+.user-message {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.assistant-message {
+  background-color: white !important;
+  color: #374151 !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.sidebar {
+  background-color: white !important;
+  border-right: 1px solid #e5e7eb !important;
+}
+
+/* Message bubble styling */
+.message-bubble-user {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  margin-left: auto !important;
+  border-radius: 1rem !important;
+  padding: 1rem !important;
+  max-width: 80% !important;
+}
+
+.message-bubble-assistant {
+  background-color: white !important;
+  color: #374151 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 1rem !important;
+  padding: 1rem !important;
+  max-width: 80% !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Ensure proper text colors */
+.message-bubble-user * {
+  color: white !important;
+}
+
+.message-bubble-assistant * {
+  color: #374151 !important;
+}
+
+.message-bubble-assistant h1,
+.message-bubble-assistant h2, 
+.message-bubble-assistant h3,
+.message-bubble-assistant strong {
+  color: #111827 !important;
+}
+
+.message-bubble-assistant code {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+}
